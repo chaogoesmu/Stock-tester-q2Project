@@ -29,6 +29,11 @@ let loggedInUsers=[{userID:1,token:0}];
 
 //******* ROUTES *******//
 
+//TODO: have a way to get the username?  Do I even care about this or should it be set based on the data we receive.
+//TODO: get funds available...
+
+
+
 app.post('/login', (req,res)=>{
   //if login works
   un = req.body.username;
@@ -48,6 +53,15 @@ app.post('/login', (req,res)=>{
 })
 app.post('/newUser', (req,res)=>{
   //TODO: add a new user
+})
+app.get('/:token/funds',(req,res)=>{
+  let userID = getUserId(req.params.token);
+  knex('users')
+  .select('funds')
+  .where({id:userID})
+  .then(results=>{
+    return res.status(200).send(results[0].funds+'');//this bug in send annoys me greatly
+  })
 })
 app.get('/:token/',(req,res)=>{
   let userID = getUserId(req.params.token);
@@ -82,6 +96,50 @@ app.get('/:token/:stockSymbol',(req,res)=>{
     res.status(200).send(results);
   })
 })
+app.post('/:token/:stockSymbol/trade',(req,res)=>{
+  let userID = getUserId(req.params.token);
+  //TODO: this should really pull from the API and not the users browser, leaves this way open to hacking, fix before public release.
+  //TODO TODO TODO TODO TODO TODO TODO TODO: seriously.  do this.
+  let change = req.body.amount * req.body.cost;
+  console.log('change');
+  console.log(change);
+  knex('users')
+  .select('funds')
+  .where({id:userID})
+  .first()
+  .then(result=>{
+    console.log('result');
+    console.log(result);
+    if(result.funds-change>0)
+    {
+
+      amtToMod = result.funds;
+      knex('trades')
+      .insert({
+        uid:userID,
+        symbol:req.params.stockSymbol,
+        amount:req.body.amount,
+        value:req.body.cost
+        //,tradeTime:'NOW()'
+      })
+      .then(results=>{
+        console.log('change')
+        console.log(change)
+        knex('users')
+        .first()
+        .where({id:userID})
+        .update({funds:result.funds-change})
+        .then(results=>{
+          res.status(200).send(results+'');
+        })
+
+      })
+    }
+    else {
+      return res.status(401).send('insufficient funds');
+    }
+  })
+})
 
 app.get('/:token/logOff',(req,res)=>{
   loggedInUsers.splice(loggedInUsers.findIndex(x=> x.token==token),1);
@@ -106,7 +164,9 @@ if (process.env.NODE_ENV !== 'test') {
 CREATE TABLE users(
 id SERIAL PRIMARY KEY,
 username VARCHAR,
-password VARCHAR);
+password VARCHAR,
+funds FLOAT
+);
 
 CREATE TABLE trades(
 id SERIAL PRIMARY KEY,
