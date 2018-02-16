@@ -7,5 +7,6 @@ app.post('/login', ctrl.CPLogin);
 app.post('/newUser', ctrl.CPNewUser);
 //return the users current funds
 app.get('/:token/funds',ctrl.CGFunds);
+app.get('/:token/logoff',ctrl.CGLogoff);
 
 module.exports = app;

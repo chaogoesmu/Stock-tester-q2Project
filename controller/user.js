@@ -21,4 +21,9 @@ function getUserId(token)
 {
   return loggedInUsers.filter(x=>x.token == token)[0].userID;
 }
-module.exports = {CPLogin,CPNewUser,CGFunds}
+function CGLogoff(req,res)
+{
+  model.MGLogoff(req.params.token, res);
+}
+
+module.exports = {CPLogin,CPNewUser,CGFunds,CGLogoff}

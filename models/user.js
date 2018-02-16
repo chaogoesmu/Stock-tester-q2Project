@@ -43,5 +43,16 @@ function MGFunds(userID, res)
     return res.status(200).send(results[0].funds+'');//this bug in send annoys me greatly
   });
 }
+function MGLogoff(token, res)
+{
+  token =parseInt(token,10);
+  let something = loggedInUsers.findIndex(x => x.token === token);
+  if(something===-1)
+  {
+    return res.status(400).send('user not found, something went wrong');
+  }
+  loggedInUsers.splice(something,1);
+  return res.status(200).send('user has been logged off, goodbye');
+}
 
-module.exports = {MGFunds,MGNewUser,MPLogin}
+module.exports = {MGFunds,MGNewUser,MPLogin,MGLogoff}
